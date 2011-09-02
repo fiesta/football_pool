@@ -1,0 +1,12 @@
+.error{ font-size: 12px; color: red }
+.games{ font-family: 'Lucida Grande', Geneva, Arial, Verdana, sans-serif;
+        font-size: 12px;
+        color: #111111;
+        background-color: white;
+        line-height: 16px }
+.usergame{ border-bottom: 1px dashed black }
+.picked{ border: 1px solid red }
+.won{ background: green }
+.lost{ background: red }
+.underway{ background: yellow }
+.away-score-row{ border-bottom: 1px dashed black }

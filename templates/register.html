@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Registration for dgottgame.com</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css"> 
+    <script type="text/javascript" src="/static/javascript/jquery-1.6.2.min.js"></script>
+  </head>
+  <body>    
+    {% if error_msg %}<span class="error">{{ error_msg }}</span>{% endif %}
+    <form method="POST" action="/register">
+      <table>
+        <tr>
+          <td>Email:</td><td><input name="email" type="text" value="" /></td>
+        </tr>
+        <tr>
+          <td>Password:</td><td><input name="password" type="password" value="" /></td>
+        </tr>
+        <tr>
+          <td>Confirm Password:</td><td><input name="confirmation_password" type="password" value="" /></td>
+        </tr>
+        <tr>
+          <td>League Password:</td><td><input name="league_password" type="password" value="" /></td>
+        </tr>
+      </table>
+      <input type="submit" value="Register"/>
+    </form>
+  </body>
+</html>

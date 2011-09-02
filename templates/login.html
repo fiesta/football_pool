@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Please Login!</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css"> 
+    <script type="text/javascript" src="/static/javascript/jquery-1.6.2.min.js"></script>
+  </head>
+  <body>    
+    {% if error_msg %}<span class="error">{{ error_msg }}</span>{% endif %}
+    <form method="POST" action="/login">
+      <table>
+        <tr>
+          <td>Email:</td><td><input name="email" type="text" value="" /></td>
+        </tr>
+        <tr>
+          <td>Password:</td><td><input name="password" type="password" value="" /></td>
+        </tr>
+      </table>
+      <input type="submit" value="Login"/>
+    </form>
+  </body>
+</html>
