@@ -1,3 +1,6 @@
+import db
+import fiesta
+import settings
 import user
 import util
 
@@ -93,10 +96,19 @@ def register():
 
         db.new_user(email, sha.sha(password).hexdigest(), email)
         if db.num_users() == 1:
-            fiesta.create_group(settings.list_name)
-
+            fiesta.create_group()
+            return redirect("https://fiesta.cc/authorize?response_type=code&client_id=%s" % (settings.client_id))
         
     return flask.render_template('register.html')
+
+@app.route('/fiesta_user_token')
+def fiesta_user_token():
+    if 'error' in request.args and request.args['error'] == 'access_denied':
+        return flask.render_template('register.html', error_msg='access denied to create a list :(')
+
+    code = request.args['code']
+    print code
+    return redirect('/homepage')
 
 if __name__ == '__main__':
     app.run(debug=True)
