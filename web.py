@@ -80,26 +80,32 @@ def homepage():
     user_obj = flask.g.user_obj
     return flask.render_template('homepage.html', username=user_obj.name, week=util.get_week())
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        confirmation = request.form['confirmation_password']
-        league_password = request.form['league_password']
+    if request.method == 'GET':
+        return flask.render_template('register.html')
 
-        if password != confirmation:
-            return flask.render_template('register.html', error_msg='Your password did not match the confirmation')
+    email = request.form['email']
+    password = request.form['password']
+    confirmation = request.form['confirmation_password']
+    league_password = request.form['league_password']
 
-        if league_password != settings.league_password:
-            return flask.render_template('register.html', error_msg='Bad league password')
+    if password != confirmation:
+        return flask.render_template('register.html', error_msg='Your password did not match the confirmation')
 
-        db.new_user(email, sha.sha(password).hexdigest(), email)
-        if db.num_users() == 1:
-            fiesta.create_group()
-            return redirect("https://fiesta.cc/authorize?response_type=code&client_id=%s" % (settings.client_id))
-        
-    return flask.render_template('register.html')
+    if league_password != settings.league_password:
+        return flask.render_template('register.html', error_msg='Bad league password')
+
+    session['email'] = email
+    db.new_user(email, sha.sha(password).hexdigest(), email)
+    if db.num_users() == 0:
+        return redirect("https://fiesta.cc/authorize?state=create_group&response_type=code&client_id=%s" % (settings.client_id))
+    else:
+        fiesta.add_member(email)
+
+    return redirect('/homepage')
+
 
 @app.route('/fiesta_user_token')
 def fiesta_user_token():
@@ -107,8 +113,17 @@ def fiesta_user_token():
         return flask.render_template('register.html', error_msg='access denied to create a list :(')
 
     code = request.args['code']
-    print code
+    try:
+        access_token = fiesta.get_user_token(code)
+    except Exception as inst:
+        app.logger.debug('error = %s:%s' % (inst.msg, inst.read()))
+
+    action = request.args['state']
+    if action == 'create_group':
+        response = fiesta.create_group(access_token)
+
     return redirect('/homepage')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
