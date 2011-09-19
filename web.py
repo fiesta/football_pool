@@ -99,8 +99,8 @@ def register():
 
     session['email'] = email
     db.new_user(email, sha.sha(password).hexdigest(), email)
-    if db.num_users() == 0:
-        return redirect("https://fiesta.cc/authorize?state=create_group&response_type=code&client_id=%s" % (settings.client_id))
+    if db.num_users() == 1:
+        return redirect("https://fiesta.cc/authorize?state=create_group&response_type=code&client_id=%s&_register_email=%s" % (settings.client_id, email))
     else:
         fiesta.add_member(email)
 
@@ -112,15 +112,17 @@ def fiesta_user_token():
     if 'error' in request.args and request.args['error'] == 'access_denied':
         return flask.render_template('register.html', error_msg='access denied to create a list :(')
 
-    code = request.args['code']
+    grant_token = request.args['code']
     try:
-        access_token = fiesta.get_user_token(code)
+        access_token = fiesta.get_user_token(grant_token)
     except Exception as inst:
-        app.logger.debug('error = %s:%s' % (inst.msg, inst.read()))
+        app.logger.debug(str(inst))
+        return redirect('/register.html', error_msg='some weird problem :(')
 
+    email = session['email']
     action = request.args['state']
     if action == 'create_group':
-        response = fiesta.create_group(access_token)
+        response = fiesta.create_group(email, access_token)
 
     return redirect('/homepage')
 

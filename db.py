@@ -11,8 +11,11 @@ create_indexes()
 
 def new_user(email, password_hash, name):
     database.users.insert({"email": email,
-                     "password_hash": password_hash,
-                     "name": name}, safe=True)
+                           "password_hash": password_hash,
+                           "name": name}, safe=True)
+
+def save_fiesta_id_for_user(email, fiesta_id):
+    database.users.update({"email": email}, {"$set": {"fiesta_id": fiesta_id}}, safe=True)
 
 def num_users():
     return database.users.count()
@@ -32,3 +35,15 @@ def game_from_id(game_id):
 
 def games_for_week(week):
     return list(database.games.find({"week": week}))
+
+def save_access_token(access_token):
+    database.meta.insert({"access_token": access_token}, safe=True)
+
+def get_access_token():
+    return database.meta.find_one({"access_token": {"$exists": True}})['access_token']
+
+def save_group_id(group_id):
+    database.meta.insert({"group_id": group_id})
+
+def get_group_id():
+    return database.meta.find_one({"group_id": {"$exists": True}})['group_id']
