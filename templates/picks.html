@@ -1,47 +1,36 @@
 <html>
   <head>
-    <title>Picks for Week #{{ week }} ({{ user_obj }})</title>
+    <title>Picks for Week #{{week}} ({{username}})</title>
     <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+
+    <script type="text/javascript">
+      function make_selection(team, pick_args) {
+        
+      }
+    </script>
   </head>
   <body>
-    <form method="post">
-      <div class="games">
-        <div py:for="game, pick in game_picks">
-          <table width="250" py:if="game.started() == True" class="usergame ${ get_game_status(game,pick) }">
-            <tr>
-              <td>${game.time_left()}</td>
-            </tr>
-            <tr class="away-score-row">
-              <td>
-                <input type="radio" name="game_${game.id}" value="a" py:attrs="checked(game, pick, 'a')" />
-                ${game.away_team}
-              </td>
-              <td align="right">${game.away_score()} <span py:if="game.away_underdog()">+ ${game.spread.get_spread()} = ${game.get_adjusted_score(away=True)}</span></td>
-            </tr>
-            <tr>
-              <td>
-                <input type="radio" name="game_${game.id}" value="h"  py:attrs="checked(game, pick, 'h')" />
-                ${game.home_team}
-              </td>
-              <td align="right">${game.home_score()} <span py:if="game.home_underdog()">+ ${game.spread.get_spread()} = ${game.get_adjusted_score(home=True)}</span></td>
-            </tr>
-          </table>
-          <table width="250" py:if="game.started() == False" class="usergame">
-            <tr>
-              <td>${game.game_time()}</td>
-            </tr>
-            <tr>
-              <td><input type="radio" name="game_${game.id}" value="a" py:attrs="checked(game, pick, 'a')" />${game.away_team}</td>
-              <td align="right"><span class="spread" py:if="game.away_underdog()">+${game.spread.get_spread()}</span></td>
-            </tr>
-            <tr>
-              <td><input type="radio" name="game_${game.id}" value="h"  py:attrs="checked(game, pick, 'h')" />${game.home_team}</td>
-              <td align="right"><span class="spread" py:if="game.home_underdog()">+${game.spread.get_spread()}</span></td>
-            </tr>
-          </table>
-        </div>
-      </div>
-      <input type="submit" value="Set Picks"/>
-    </form>
+    <div class="games">
+      {% for pick in picks %}
+      <table width="250">
+        <tr><td colspan="3"> 
+            {% if pick.game.started() %} {{pick.game.time_left}}
+            {% else %}
+            {{pick.game.game_time}} {% endif %}
+        </td></tr>
+        <tr>
+          <td><input type="radio" onClick="make_selection({{pick.game.away_team.id}}, '{{pick.js_args}}')"/></td>
+          <td>{{pick.game.away_team.name}}</td>
+          <td>{{pick.game.away_score}}</td>
+        </tr>
+        <tr>
+          <td><input type="radio" onClick="make_selection({{pick.game.home_team.id}}, '{{pick.js_args}}')"/></td>
+          <td>{{pick.game.home_team.name}}</td>
+          <td>{{pick.game.home_score}}</td>
+        </tr>
+        </td></tr>
+      </table>
+      {% endfor %}
+    </div>
   </body>
 </html>

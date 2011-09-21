@@ -1,13 +1,14 @@
-import datetime
-import re
-import urllib
+import db
+import game
+import util
 
 from BeautifulSoup import BeautifulSoup
 import pytz
 
-import db
-import game
-import util
+import datetime
+import re
+import sys
+import urllib
 
 months = { 'September' : 9 , 'October' : 10 , 'November' : 11 , 'December' : 12 , 'January' : 1 }
 est_tz = pytz.timezone('US/Eastern')
@@ -35,21 +36,16 @@ def get_games(week=None):
     games = scoreboard.fetch('div', {'id':re.compile('\d+-gameContainer')})
 
     for dom_game in games:
-        in_progress = False
         game_id = dom_game['id'].partition('-')[0]
-        time = dom_game.fetch('div', {'class':'game-status'})
-        if False: #if len(time) == 0: #Game in Progress/Done
-            """
-            time_left = dom_game.fetch('td', {'class':'teamTop_inGame'})[0].renderContents().strip()
-            scores = dom_game.fetch('td',{'class':'tScoreLine'})
-            """
-
-            #away_score = int(scores[0].renderContents())
-            #home_score = int(scores[1].renderContents())
-            #in_progress = True
-            #game_time = None
+        time_node = dom_game.fetch('div', {'class': 'game-status'})[0]
+        if 'Qtr' in time_node.text or 'Final' in time_node.text:
+            away_score = int(dom_game.fetch('li', {'id': game_id + '-aTotal'})[0].text)
+            home_score = int(dom_game.fetch('li', {'id': game_id + '-hTotal'})[0].text)
+            game_time = None
+            time_left = time_node.text
         else:
-            game_time = time[0].text
+            game_time = time_node.text
+            time_left = None
 
         team_href_re = re.compile('.*clubhouse.*')
         away_team = dom_game.fetch('a', {'href': team_href_re})[0].text
@@ -60,14 +56,17 @@ def get_games(week=None):
         away = util.teams_by_name[away_team]
         home = util.teams_by_name[home_team]
 
-        game_obj = game.Game.from_game_id(game_id)
+        game_obj = game.Game.from_id(game_id)
         if not game_obj:
             db.new_game(game_id, week, get_gametime(game_date, game_time), 
                         away.id, home.id)
-            game_obj = game.Game.from_game_id(game_id)
+            game_obj = game.Game.from_id(game_id)
         
-        if in_progress:
+        if time_left:
             game_obj.update_score(away_score, home_score, time_left)
 
+    return games
+
 if __name__ == '__main__':
-    get_games(1)
+    week = int(sys.argv[-1])
+    games = get_games(week)

@@ -1,5 +1,6 @@
 import db
 import fiesta
+import game
 import settings
 import user
 import util
@@ -81,6 +82,17 @@ def homepage():
     return flask.render_template('homepage.html', username=user_obj.name, week=util.get_week())
 
 
+@app.route('/picks')
+@login_required
+def picks():
+    user_obj = flask.g.user_obj
+    week = int(flask.request.args.get('week', util.get_week()))
+    return flask.render_template('picks.html', 
+                                 username=user_obj.name, 
+                                 week=week, 
+                                 picks=user_obj.picks_for_week(week))
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
@@ -113,16 +125,18 @@ def fiesta_user_token():
         return flask.render_template('register.html', error_msg='access denied to create a list :(')
 
     grant_token = request.args['code']
+    app.logger.debug(grant_token)
     try:
-        access_token = fiesta.get_user_token(grant_token)
+        fiesta.get_user_token(grant_token)
     except Exception as inst:
-        app.logger.debug(str(inst))
-        return redirect('/register.html', error_msg='some weird problem :(')
+        app.logger.debug('Failed with ' + str(inst))
+        #return redirect('/register.html', error_msg='some weird problem :(')
+        return flask.render_template('register.html', error_msg='some weird problem:(')
 
     email = session['email']
-    action = request.args['state']
+    action = request.args.get('state', None)
     if action == 'create_group':
-        response = fiesta.create_group(email, access_token)
+        response = fiesta.create_group(email)
 
     return redirect('/homepage')
 
